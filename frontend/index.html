@@ -1,0 +1,61 @@
+<html>
+<h1>Running tasks</h1>
+<p>Type PIDs in order to rearrange</p>
+<input></input>
+<div></div>
+<script>
+    const div = document.querySelector("div");
+    const shell_pid_states = { "divider": { "------": "-------" } };
+    let desired_order = [];
+
+    const render = () => {
+        div.innerHTML = "";
+        Object.entries(shell_pid_states).sort((a, b) => {
+            if (!desired_order.includes(a[0])) {
+                if (a[0] == "divider" && !desired_order.includes(b[0])) {
+                    return -1;
+                } else return 1;
+            } else if (!desired_order.includes(b[0])) {
+                return -1;
+            }
+            else return desired_order.indexOf(a[0]) - desired_order.indexOf(b[0]);
+        }).forEach(([key, value]) => {
+            const p = document.createElement("p");
+            p.innerText = `${key}: ${JSON.stringify(value)}`
+            p.style.padding = "10px"
+            if (value.done && desired_order.includes(key)) p.style.background = "lightgreen"
+            div.appendChild(p);
+        });
+    }
+
+    const establishConnection = () => {
+        const websocket = new WebSocket(`ws://${window.location.host}`)
+        websocket.addEventListener("message", (message) => {
+            const message_parts = message.data.split("\n");
+            const shell_id = message_parts[0]
+            const start_or_stop = message_parts[1]
+            if (start_or_stop == "start") {
+                shell_pid_states[shell_id] = { cmd: message_parts[2], done: false }
+            } else {
+                shell_pid_states[shell_id] = { ...shell_pid_states[shell_id], done: true }
+            }
+            render();
+        })
+        websocket.addEventListener("close", () => {
+            setTimeout(establishConnection, 500);
+        })
+    }
+
+    const inpu = document.querySelector("input");
+    inpu.addEventListener("keyup", () => {
+        desired_order = inpu.value.split(",")
+        render();
+    })
+
+    establishConnection();
+    render();
+
+
+</script>
+
+</html>
