@@ -6,9 +6,10 @@
 <script>
     const div = document.querySelector("div");
     const shell_pid_states = { "divider": { "------": "-------" } };
-    let desired_order = [];
+    const inpu = document.querySelector("input");
 
     const render = () => {
+        let desired_order = inpu.value.split(",")
         div.innerHTML = "";
         Object.entries(shell_pid_states).sort((a, b) => {
             if (!desired_order.includes(a[0])) {
@@ -20,24 +21,44 @@
             }
             else return desired_order.indexOf(a[0]) - desired_order.indexOf(b[0]);
         }).forEach(([key, value]) => {
-            const p = document.createElement("p");
-            p.innerText = `${key}: ${JSON.stringify(value)}`
-            p.style.padding = "10px"
-            if (value.done && desired_order.includes(key)) p.style.background = "lightgreen"
-            div.appendChild(p);
+            const displayRow = document.createElement("p");
+            if (key != "divider") {
+                const promoteDemoteButton = document.createElement("button");
+                promoteDemoteButton.innerText = desired_order.includes(key) ? "v" : "^"
+                promoteDemoteButton.addEventListener("click", () => {
+                    if (!desired_order.includes(key)) {
+                        inpu.value = inpu.value + "," + key;
+                    } else {
+                        inpu.value = inpu.value.replace("," + key, "");
+                    }
+                    render();
+                })
+                displayRow.appendChild(promoteDemoteButton);
+            }
+
+            const rowText = document.createElement("span");
+            rowText.innerText = `${key}: ${JSON.stringify(value)}`
+            displayRow.appendChild(rowText);
+            displayRow.style.padding = "10px"
+            if (value.done && desired_order.includes(key)) displayRow.style.background = "lightgreen"
+
+            div.appendChild(displayRow);
         });
     }
 
     const establishConnection = () => {
         const websocket = new WebSocket(`ws://${window.location.host}`)
         websocket.addEventListener("message", (message) => {
-            const message_parts = message.data.split("\n");
-            const shell_id = message_parts[0]
-            const start_or_stop = message_parts[1]
-            if (start_or_stop == "start") {
-                shell_pid_states[shell_id] = { cmd: message_parts[2], done: false }
+            const statusUpdate = JSON.parse(message.data);
+            if (statusUpdate.start_or_stop == "start") {
+                shell_pid_states[statusUpdate.shell_id] = {
+                    cmd: statusUpdate.cmd,
+                    done: false,
+                    ttl: statusUpdate.ttl ? Number(statusUpdate.ttl) : undefined,
+                    last_update: Date.now()
+                }
             } else {
-                shell_pid_states[shell_id] = { ...shell_pid_states[shell_id], done: true }
+                shell_pid_states[statusUpdate.shell_id] = { ...shell_pid_states[statusUpdate.shell_id], done: true, ttl: undefined }
             }
             render();
         })
@@ -46,9 +67,20 @@
         })
     }
 
-    const inpu = document.querySelector("input");
+    setInterval(() => {
+        let mustRerender = false;
+        for (const shell_id in shell_pid_states) {
+            if (shell_pid_states[shell_id].ttl && (Date.now() > shell_pid_states[shell_id].last_update + shell_pid_states[shell_id].ttl)) {
+                delete shell_pid_states[shell_id];
+                mustRerender = true;
+            }
+        }
+        if (mustRerender) {
+            render();
+        }
+    })
+
     inpu.addEventListener("keyup", () => {
-        desired_order = inpu.value.split(",")
         render();
     })
 

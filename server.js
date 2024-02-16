@@ -2,6 +2,7 @@
 import express from 'express'
 import fs from 'fs';
 import { WebSocketServer } from 'ws';
+import cors from 'cors';
 
 const PORT = 6234;
 
@@ -14,16 +15,15 @@ const main = () => {
 
 const start_http_server = (live_connections) => {
     const app = express();
+    app.use(cors());
     app.use(express.static("frontend"));
     app.post("/status", (req, res) => {
-        if ( /^\/tmp\/pp-\d+$/.exec(req.query.file)){
-            const contents = fs.readFileSync(req.query.file).toString()
-            live_connections.forEach(conn=>{
-                conn.send(contents);
-            })
-            fs.unlinkSync(req.query.file);
+        if (req.query.shell_id) {
+            live_connections.forEach(conn => {
+                conn.send(JSON.stringify(req.query))
+            });
             res.status(200).end();
-        }else{
+        } else {
             res.status(400).end();
         }
     })
