@@ -1,0 +1,10 @@
+function stack-register-thread () {
+    curl -X POST -k "https://localhost:6234/status?type=associate-pid&pid=$$&thread_id=$1"
+}
+
+function stack-ack () {
+    curl -X POST -k "https://localhost:6234/status?type=post-update&pid=$$&state=YOU_DOING"
+}
+
+# alias srt=stack-register-thread
+# alias ack=stack-ack
