@@ -22,6 +22,8 @@
         } catch (ex) {
             console.log(`oh no, stored thread order was ${thread_order_json}`)
         }
+        const inpu = document.querySelector("input");
+        inpu.value = thread_order.join(",")
         return thread_order;
     }
 
@@ -74,6 +76,7 @@
             thread_order.splice(0, thread_order.length);
             const split_thread_names = inpu.value.split(",")
             thread_order.push(...split_thread_names)
+            localStorage.setItem("thread_order", JSON.stringify(thread_order));
             renderer.render();
         })
     }
@@ -86,7 +89,7 @@
             renderer.render();
         })
         websocket.addEventListener("close", () => {
-            setTimeout(establishConnection, 500);
+            setTimeout(handle_thread_state_updates, 500);
         })
     }
 
