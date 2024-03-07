@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import express from 'express'
-import fs from 'fs';
+import fs from 'fs'
+import https from 'https'
 import { WebSocketServer } from 'ws';
 import cors from 'cors';
 
@@ -8,12 +9,13 @@ const PORT = 6234;
 
 const main = () => {
     const live_connections = [];
-    const http_server = start_http_server(live_connections);
-    start_websocket_server(http_server, live_connections);
+    const app = build_app(live_connections);
+    const server = start_http_or_https_server(app, process.env["HTTPS"] == "true");
+    start_websocket_server(server, live_connections);
 }
 
 
-const start_http_server = (live_connections) => {
+const build_app = (live_connections) => {
     const app = express();
     app.use(cors());
     app.use(express.static("frontend"));
@@ -27,11 +29,24 @@ const start_http_server = (live_connections) => {
             res.status(400).end();
         }
     })
-    return app.listen(PORT, () => {
-        console.log(`server started at ${PORT}`)
-    });
+    return app;
 }
 
+const start_http_or_https_server = (app, is_https) => {
+    let server;
+    const callback = () => {
+        console.log(`server started at ${PORT}`)
+    };
+    if (is_https) {
+        let privateKey = fs.readFileSync('server.key', 'utf8');
+        let certificate = fs.readFileSync('server.crt', 'utf8');
+        let httpsServer = https.createServer({ key: privateKey, cert: certificate }, app);
+        server = httpsServer.listen({ port: PORT }, callback);
+    } else {
+        server = app.listen(PORT, callback);
+    }
+    return server;
+}
 
 const start_websocket_server = (http_server, live_connections) => {
     const websocket_server = new WebSocketServer({ noServer: true });
