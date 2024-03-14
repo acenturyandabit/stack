@@ -32,8 +32,15 @@ A thread can be in one of four states: You're working on it, You could be workin
 
 Stack can't actually keep track of threads-of-work; instead it can only keep track of PIDs on the system (of bash shells), or browser windows.
 
+### Bash shells / PIDs
+
 You should register bash shells by typing `stack-register-thread TASKNAME` to associate a bash shell to a thread. Subsequently, Stack, via `server.js`, will check whether or not the shell has any child processes. If any shell associated with the thread has a child process, Stack will assume that the Computer is working on the thread. If all shells associated with the the thread dies, Stack will assume the thread is dead.
 
 The `server.js` will give the frontend a list of tasks, their state, and any metadata for that state (e.g. process names).
 
 The frontend keeps a record of thread priority, and will display in large font the highest priority thread that is you're-working-on-it. This is stored in the frontend localstorage, because I can't be bothered to make a way for the server to store it right now.
+
+### Browser / external tasks
+
+External tasks broadcast their state as either either 'running' or 'done' with a ticket ID in the query parameter. When a task transitions from 'running' to 'done' then it will be flagged by stack and an alert will be provided to the user. The user can ack by pressing on the frontend.
+
