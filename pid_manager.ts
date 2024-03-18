@@ -77,9 +77,11 @@ export const watch_pids = (thread_state, live_connections) => {
                 }
             }
             thread_state.threads[thread_id] = future_state;
+        });
+        for (const thread_id in thread_state.threads){
             live_connections.forEach(conn => {
                 conn.send(JSON.stringify(thread_state.threads[thread_id]));
             });
-        });
+        }
     }, 1000);
 }

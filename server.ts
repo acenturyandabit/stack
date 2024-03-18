@@ -4,7 +4,7 @@ import fs from 'fs'
 import https from 'https'
 import { WebSocketServer } from 'ws';
 import cors from 'cors';
-import { add_pid_routes, watch_pids } from './pid_manager.js';
+import { add_pid_routes, watch_pids } from './pid_manager';
 const PORT = 6234;
 
 /*
@@ -27,7 +27,7 @@ const main = () => {
     add_pid_routes(app, thread_state, live_connections);
     watch_pids(thread_state, live_connections);
 
-    // add_server_routes(app, thread_state, live_connections);
+    // add_external_routes(app, thread_state, live_connections);
 
     const server = start_http_or_https_server(app, process.env["HTTPS"] == "true");
     start_websocket_server(server, live_connections);
