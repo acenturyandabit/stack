@@ -7,17 +7,10 @@ import cors from 'cors';
 import { add_pid_routes, watch_pids } from './pid_manager';
 const PORT = 6234;
 
-/*
-type task {
-    thread_id: string,
-    state: "YOU_DOING" | "YOU_COULD_BE_DOING" | "DEAD" | "COMPUTER_DOING"
-};
-*/
-
 
 const main = () => {
     const live_connections = [];
-    const thread_state = {
+    const thread_state: ThreadAndState = {
         threads: {},
         pid_thread_mapping: {}
     };
@@ -26,8 +19,6 @@ const main = () => {
 
     add_pid_routes(app, thread_state, live_connections);
     watch_pids(thread_state, live_connections);
-
-    // add_external_routes(app, thread_state, live_connections);
 
     const server = start_http_or_https_server(app, process.env["HTTPS"] == "true");
     start_websocket_server(server, live_connections);

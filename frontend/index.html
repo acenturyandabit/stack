@@ -74,8 +74,21 @@
                         inpu.value = thread_order.join(",")
                         renderer.render();
                     })
+
+                    const ack_btn = document.createElement("button");
+                    ack_btn.innerText = "OK";
+                    ack_btn.addEventListener("click", () => {
+                        const url = `https://${window.location.host}`
+                        const send_state = (thread_id, state, command = "") => {
+                            fetch(url + `/status?type=post-update&thread_id=${thread_id}&state=${state}&command=${command}`, { method: "POST" })
+                        }
+                        send_state(entry[0], "YOU_DOING", entry[1].command || "")
+                    });
+
+
                     const p = document.createElement("p");
                     p.append(up_btn);
+                    p.append(ack_btn);
                     const sp = document.createElement("span");
                     sp.innerText = `${entry[0]} : ${JSON.stringify(entry[1])}`;
                     p.appendChild(sp);

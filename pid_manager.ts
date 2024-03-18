@@ -1,6 +1,6 @@
 import { execSync } from "child_process";
 
-export const add_pid_routes = (app, thread_state, live_connections) => {
+export const add_pid_routes = (app, thread_state: ThreadAndState, live_connections) => {
     app.post("/status", (req, res) => {
         if (req.query.type == "associate-pid") {
             thread_state.pid_thread_mapping[req.query.pid] = req.query.thread_id;
@@ -19,6 +19,17 @@ export const add_pid_routes = (app, thread_state, live_connections) => {
             }
             if (thread_state.threads[thread_id].state != req.query.state) {
                 thread_state.threads[thread_id].state = req.query.state;
+            }
+            if (thread_state.threads[thread_id].ttl_timeout){
+                clearTimeout(thread_state.threads[thread_id].ttl_timeout);
+            }
+            if (req.query.ttl) {
+                thread_state.threads[thread_id].ttl_timeout = setTimeout(() => {
+                    thread_state.threads[thread_id].state = "DEAD";
+                    live_connections.forEach(conn => {
+                        conn.send(JSON.stringify(thread_state.threads[thread_id]));
+                    });
+                }, Number(req.query.ttl))
             }
             live_connections.forEach(conn => {
                 conn.send(JSON.stringify(thread_state.threads[thread_id]));
@@ -63,7 +74,7 @@ export const watch_pids = (thread_state, live_connections) => {
         still_alive_pids.forEach(pid => {
             const thread_id = thread_state.pid_thread_mapping[pid];
             const current_state = thread_state.threads[thread_id].state;
-            const future_state = { ...thread_state.threads[thread_id] };
+            const future_state: Thread = { ...thread_state.threads[thread_id] };
             try {
                 const child_pid = execSync(`pgrep -P ${pid}`).toString().split("\n")[0];
                 // console.log(`thread ${pid} has child ${child_pid}`)
@@ -78,7 +89,7 @@ export const watch_pids = (thread_state, live_connections) => {
             }
             thread_state.threads[thread_id] = future_state;
         });
-        for (const thread_id in thread_state.threads){
+        for (const thread_id in thread_state.threads) {
             live_connections.forEach(conn => {
                 conn.send(JSON.stringify(thread_state.threads[thread_id]));
             });
