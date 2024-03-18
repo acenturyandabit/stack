@@ -3,6 +3,18 @@
 <input
     placeholder="Enter threads separated by commas for priority. Threads not mentioned shall be ordered in alphabetical order.">
 <h2>All thread states</h2>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=BioRhyme:wght@200..800&display=swap" rel="stylesheet">
+<style>
+    * {
+        font-family: "BioRhyme", sans-serif;
+        font-weight: 400;
+    }
+    body{
+        transition: background-color 0.5s ease;
+    }
+</style>
 <div></div>
 <script>
     const main = () => {
@@ -96,9 +108,9 @@
                     prev_entry = entry[0];
                 })
                 if (first_you_entry_state == "YOU_COULD_BE_DOING") {
-                    document.body.style.background = "orange";
+                    document.body.style.backgroundColor = "orange";
                 } else if (first_you_entry_state == undefined) {
-                    document.body.style.background = "white";
+                    document.body.style.backgroundColor = "white";
                 } else {
                     document.body.style.background = "lightgreen";
                 }
