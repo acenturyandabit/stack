@@ -16,6 +16,7 @@ const main = () => {
     };
 
     const app = express();
+    app.use(cors());
 
     add_pid_routes(app, thread_state, live_connections);
     watch_pids(thread_state, live_connections);
@@ -26,7 +27,6 @@ const main = () => {
 
 
 const start_http_or_https_server = (app, is_https) => {
-    app.use(cors());
     app.use(express.static("frontend"));
     let server;
     const callback = () => {

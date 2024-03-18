@@ -17,10 +17,14 @@ export const add_pid_routes = (app, thread_state: ThreadAndState, live_connectio
             if (!thread_id) {
                 thread_id = thread_state.pid_thread_mapping[req.query.pid];
             }
+            if (!thread_state.threads[thread_id]) thread_state.threads[thread_id] = {
+                state: "DEAD",
+                thread_id: thread_id
+            }
             if (thread_state.threads[thread_id].state != req.query.state) {
                 thread_state.threads[thread_id].state = req.query.state;
             }
-            if (thread_state.threads[thread_id].ttl_timeout){
+            if (thread_state.threads[thread_id].ttl_timeout) {
                 clearTimeout(thread_state.threads[thread_id].ttl_timeout);
             }
             if (req.query.ttl) {
@@ -46,7 +50,7 @@ export const add_pid_routes = (app, thread_state: ThreadAndState, live_connectio
 export const watch_pids = (thread_state, live_connections) => {
     setInterval(() => {
         let pids = Object.keys(thread_state.pid_thread_mapping);
-        let thread_pids = {};
+        let threads_with_pid = Object.values(thread_state.pid_thread_mapping) as string[];
         // check for alive threads
         for (let thread_id in thread_state.threads) {
             thread_state.threads[thread_id].pids = [];
@@ -63,12 +67,12 @@ export const watch_pids = (thread_state, live_connections) => {
             }
         });
         // check dead PIDs
-        for (let thread_id in thread_state.threads) {
+        threads_with_pid.forEach((thread_id: string) => {
             if (thread_state.threads[thread_id].pids.length == 0) {
                 // RIP
                 thread_state.threads[thread_id].state = "DEAD";
             }
-        }
+        })
 
         let still_alive_pids = Object.keys(thread_state.pid_thread_mapping);
         still_alive_pids.forEach(pid => {
