@@ -51,23 +51,24 @@
                 let first_you_entry_state;
                 let prev_entry = undefined;
                 thread_state_entries.forEach(entry => {
+                    let closure_prev_entry = prev_entry;
                     if ((entry[1].state == "YOU_DOING" || entry[1].state == "YOU_COULD_BE_DOING") && first_you_entry == undefined) {
                         first_you_entry = entry[0];
                         first_you_entry_state = entry[1].state;
                     }
                     const up_btn = document.createElement("button");
                     up_btn.innerText = "^";
-                    up_btn.addEventListener("click",()=>{
+                    up_btn.addEventListener("click", () => {
                         const old_idx = thread_order.indexOf(entry[0])
-                        if (old_idx != -1){
+                        if (old_idx != -1) {
                             thread_order.splice(old_idx, 1);
                         }
-                        if (prev_entry != undefined){
-                            new_pos = thread_order.indexOf(prev_entry)-1;
-                        }else{
+                        if (closure_prev_entry != undefined) {
+                            new_pos = thread_order.indexOf(closure_prev_entry);
+                        } else {
                             new_pos = thread_order.length;
                         }
-                        thread_order.splice(new_pos,0,entry[0]);
+                        thread_order.splice(new_pos, 0, entry[0]);
                         localStorage.setItem("thread_order", JSON.stringify(thread_order));
                         const inpu = document.querySelector("input");
                         inpu.value = thread_order.join(",")
@@ -81,12 +82,12 @@
                     div.appendChild(p);
                     prev_entry = entry[0];
                 })
-                if (first_you_entry_state == "YOU_COULD_BE_DOING"){
-                    document.body.style.background="orange";
-                }else if (first_you_entry_state == undefined){
-                    document.body.style.background="white";
-                }else{
-                    document.body.style.background="lightgreen";
+                if (first_you_entry_state == "YOU_COULD_BE_DOING") {
+                    document.body.style.background = "orange";
+                } else if (first_you_entry_state == undefined) {
+                    document.body.style.background = "white";
+                } else {
+                    document.body.style.background = "lightgreen";
                 }
                 span.innerText = first_you_entry || "nothing";
             }
