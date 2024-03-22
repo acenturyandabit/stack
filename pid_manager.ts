@@ -1,3 +1,4 @@
+import { ThreadAndState, Thread } from "./types";
 import { execSync } from "child_process";
 
 export const add_pid_routes = (app, thread_state: ThreadAndState, live_connections) => {
@@ -77,16 +78,22 @@ export const watch_pids = (thread_state, live_connections) => {
         let still_alive_pids = Object.keys(thread_state.pid_thread_mapping);
         still_alive_pids.forEach(pid => {
             const thread_id = thread_state.pid_thread_mapping[pid];
-            const current_state = thread_state.threads[thread_id].state;
-            const future_state: Thread = { ...thread_state.threads[thread_id] };
+            const current_state = thread_state.threads[thread_id];
+            const future_state: Thread = { ...current_state };
             try {
+                const LONG_TASK_THRESHOLD = 3500;
                 const child_pid = execSync(`pgrep -P ${pid}`).toString().split("\n")[0];
                 // console.log(`thread ${pid} has child ${child_pid}`)
-                future_state.state = "COMPUTER_DOING";
                 future_state.command = execSync(`ps -o args= -p ${child_pid}`).toString()
+                if (current_state.command_started_at == undefined) {
+                    future_state.command_started_at = Date.now()
+                } else if (Date.now() - current_state.command_started_at > LONG_TASK_THRESHOLD) {
+                    future_state.state = "COMPUTER_DOING";
+                }
             } catch (e) {
                 // console.log(e)
                 // console.log(`thread ${pid} has no child`)
+                future_state.command_started_at = undefined;
                 if (future_state.state == "COMPUTER_DOING") {
                     future_state.state = "YOU_COULD_BE_DOING";
                 }
