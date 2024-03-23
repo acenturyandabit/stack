@@ -2,6 +2,8 @@
 
 As a C++ software developer / databricks backtest runner, I occasionally have long-running tasks that take unpredictable amounts of time. I want to have an automated way of alerting me when those tasks are complete.
 
+![Screenshot of the app showing long running tasks](screenshot.png)
+
 ## Installation
 
 Requirements: node/npm on your system
