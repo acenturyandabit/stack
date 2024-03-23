@@ -22,6 +22,10 @@ Requirements: node/npm on your system
 8. When the task is done, Stack will let you know.
 9. Ack that the task is done using `stack-ack` in the same shell as the process, then keep doing your work.
 
+## Advanced usage
+
+From the web UI, you can click the '^' button on each task to rearrange its priority. A higher priority task that is marked 'YOU_COULD_BE_DOING' takes precedence over a lower task that is marked 'COMPUTER_DOING', so you will always be notified when your highest priority tasks are available to do.
+
 ## How it works
 
 There are three actors in our model: You, the Computer, and Stack. You have a number of threads of work. Your job is to do your most urgent thread; but sometimes you ask the Computer to do your thread, e.g. compile a piece of code. When this happens, you will go work on another, less urgent thread. When the Computer has finished on your most urgent thread, the Stack will notify you that you are able to resume your most urgent thread.
