@@ -13,7 +13,7 @@ Requirements: node/npm on your system
    - You may want to use a https server (even a self-signed one) as this will allow userscripts from https sites to send requests to your server. To do this:
        1. `openssl req -x509 -newkey rsa:4096 -keyout server.key -out server.crt -nodes -subj "/C=XX/ST=StateName/L=CityName/O=CompanyName/OU=CompanySectionName/CN=CommonNameOrHostname"`
        2. Run instead with `HTTPS=true ./server.js`
-       3. Add `STACK_HTTPS=1` to your bashrc.
+       3. Edit the `bashrc_supplement` to use https instead of http.
 5. Open the webapp according to the console output.
 6. For new shells, run `stack-register-thread TASKNAME` to register a shell to a task. (You might want to alias this, its pretty long)
 7. Start a long running task on your shell that you've registered. Stack will be alerted to its presence.
@@ -42,5 +42,4 @@ The frontend keeps a record of thread priority, and will display in large font t
 
 ### Browser / external tasks
 
-External tasks broadcast their state as either either 'running' or 'done' with a ticket ID in the query parameter. When a task transitions from 'running' to 'done' then it will be flagged by stack and an alert will be provided to the user. The user can ack by pressing on the frontend.
-
+Use the `userscript.ts` and Tampermonkey or your favourite userscript runner to setup browser-forwarded task states. This works great with long running searches from your company's data insights tooling.
