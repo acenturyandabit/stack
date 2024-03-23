@@ -135,7 +135,7 @@
         websocket.addEventListener("close", () => {
             const span = document.querySelector("span#should_be_doing");
             span.innerText = "DISCONNECTED! Reconnecting..."
-            setTimeout(handle_thread_state_updates, 500);
+            setTimeout(()=>handle_thread_state_updates(thread_states, renderer), 500);
         })
     }
 
