@@ -8,19 +8,36 @@ As a C++ software developer / databricks backtest runner, I occasionally have lo
 
 Requirements: node/npm on your system
 
-1. Clone this folder to somewhere out of the way.
-2. Run `npm install .`
-3. Add the `bashrc_supplement` to your .bashrc; restart shells or source .bashrc
-4. Run the server: `./server.js`
-   - You may want to use a https server (even a self-signed one) as this will allow userscripts from https sites to send requests to your server. To do this:
-       1. `openssl req -x509 -newkey rsa:4096 -keyout server.key -out server.crt -nodes -subj "/C=XX/ST=StateName/L=CityName/O=CompanyName/OU=CompanySectionName/CN=CommonNameOrHostname"`
-       2. Run instead with `HTTPS=true ./server.js`
-       3. Edit the `bashrc_supplement` to use https instead of http.
-5. Open the webapp according to the console output.
-6. For new shells, run `stack-register-thread TASKNAME` to register a shell to a task. (You might want to alias this, its pretty long)
-7. Start a long running task on your shell that you've registered. Stack will be alerted to its presence.
-8. When the task is done, Stack will let you know.
-9. Ack that the task is done using `stack-ack` in the same shell as the process, then keep doing your work.
+```bash
+# Clone this folder to somewhere out of the way.
+git clone $THIS_REPO
+cd stack
+
+# Install dependencies
+npm install .
+
+# Add the `bashrc_supplement` to your .bashrc; restart shells or source .bashrc
+cat bashrc_supplement >> ~/.bashrc; source ~/.bashrc
+
+# Run the server
+tsx ./server.ts
+
+# Optional: You may want to use a https server with a self-signed certificate as this will allow userscripts from https sites to send requests to your server. To do this:
+openssl req -x509 -newkey rsa:4096 -keyout server.key -out server.crt -nodes -subj "/C=XX/ST=StateName/L=CityName/O=CompanyName/OU=CompanySectionName/CN=CommonNameOrHostname"
+
+# And so you would instead run:
+HTTPS=true ./server.js
+# Also don't forget to edit the bashrc_supplement to use https instead of http.
+
+```
+
+## Usage
+
+1. Open the webapp according to the console output.
+2. For new shells, run `stack-register-thread TASKNAME` to register a shell to a task. (You might want to alias this, its pretty long)
+3. Start a long running task on your shell that you've registered. Stack will be alerted to its presence.
+4. When the task is done, Stack will let you know.
+5. Ack that the task is done using `stack-ack` in the same shell as the process, then keep doing your work.
 
 ## Advanced usage
 
