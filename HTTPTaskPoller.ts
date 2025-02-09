@@ -13,7 +13,7 @@ export default class HTTPTaskPoller {
     this.interval = interval;
     this.callback = callback;
     app.post("/status", (req, res) => {
-      const pid = req.query.pid as string;
+      const pid = req.query.thread_id as string;
       this.tasks[pid] = {
         pid,
         cwd: "-",
@@ -21,6 +21,7 @@ export default class HTTPTaskPoller {
         started_at: Date.now(), // use as last seen
         completed_at: null
       };
+      this.callback(this.tasks);
     });
   }
 
@@ -43,14 +44,16 @@ export default class HTTPTaskPoller {
   }
 
   private pollTasks() {
-    const oldLastTasks = this.tasks;
+    const oldTaskString = JSON.stringify(this.tasks);
     this.tasks = Object.fromEntries(Object.entries(this.tasks).map(([_, task]) => {
-      if (task.started_at < Date.now() - 4000) {
+      if (task.started_at < Date.now() - 4000 && task.completed_at === null) {
         task.completed_at = Date.now();
+        console.log("completed!")
       }
       return [_, {...task}];
     }));
-    if (JSON.stringify(oldLastTasks) != JSON.stringify(this.tasks)) {
+    if (oldTaskString != JSON.stringify(this.tasks)) {
+      console.log("emitted")
       this.callback(this.tasks);
     }
   }
