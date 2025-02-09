@@ -5,7 +5,7 @@ import https from 'https'
 import { WebSocketServer } from 'ws';
 import cors from 'cors';
 import { add_pid_routes, watch_pids } from './pid_manager';
-import { ThreadAndState } from './types';
+import { ThreadsAndPids } from './types';
 import * as httpolyglot from 'httpolyglot';
 
 const PORT = 6234;
@@ -13,7 +13,7 @@ const PORT = 6234;
 
 const main = () => {
     const live_connections = [];
-    const thread_state: ThreadAndState = {
+    const thread_state: ThreadsAndPids = {
         threads: {},
         pid_thread_mapping: {}
     };

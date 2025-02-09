@@ -1,4 +1,11 @@
+
+# Extra whitespace above in case the user hasn't newline terminated their .bashrc
+
 function stack-register-thread () {
+    if [[ -z "$1" ]]; then
+        echo "stack-register-thread requires a thread name"
+        return 1
+    fi
     curl -X POST "http://localhost:6234/status?type=associate-pid&pid=$$&thread_id=$1"
     # For HTTPS:
     # curl -X POST -k "https://localhost:6234/status?type=associate-pid&pid=$$&thread_id=$1"

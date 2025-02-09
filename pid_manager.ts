@@ -1,7 +1,7 @@
-import { ThreadAndState, Thread } from "./types";
+import { ThreadsAndPids, Thread } from "./types";
 import { execSync } from "child_process";
 
-export const add_pid_routes = (app, thread_state: ThreadAndState, live_connections) => {
+export const add_pid_routes = (app, thread_state: ThreadsAndPids, live_connections) => {
     app.post("/status", (req, res) => {
         if (req.query.type == "associate-pid") {
             thread_state.pid_thread_mapping[req.query.pid] = req.query.thread_id;

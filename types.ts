@@ -7,7 +7,7 @@ export type Thread = {
     ttl_timeout?: NodeJS.Timeout
 };
 
-export type ThreadAndState = {
+export type ThreadsAndPids = {
     threads: Record<string, Thread>,
     pid_thread_mapping: Record<string, string>
 }
