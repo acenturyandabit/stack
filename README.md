@@ -33,7 +33,7 @@ HTTPS=true ./server.js
 
 ## Usage
 
-1. Open the webapp according to the console output.
+1. Open the URL according to the console output.
 2. For new shells, run `stack-register-thread TASKNAME` to register a shell to a task. (You might want to alias this, its pretty long)
 3. Start a long running task on your shell that you've registered. Stack will be alerted to its presence.
 4. When the task is done, Stack will let you know.

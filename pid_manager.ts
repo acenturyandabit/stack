@@ -7,7 +7,8 @@ export const add_pid_routes = (app, thread_state: ThreadsAndPids, live_connectio
             thread_state.pid_thread_mapping[req.query.pid] = req.query.thread_id;
             thread_state.threads[req.query.thread_id] = {
                 thread_id: req.query.thread_id,
-                state: "YOU_DOING"
+                state: "YOU_DOING",
+                pids: []
             }
             live_connections.forEach(conn => {
                 conn.send(JSON.stringify(thread_state.threads[req.query.thread_id]));
@@ -20,7 +21,8 @@ export const add_pid_routes = (app, thread_state: ThreadsAndPids, live_connectio
             }
             if (!thread_state.threads[thread_id]) thread_state.threads[thread_id] = {
                 state: "DEAD",
-                thread_id: thread_id
+                thread_id: thread_id,
+                pids: []
             }
             if (thread_state.threads[thread_id].state != req.query.state) {
                 thread_state.threads[thread_id].state = req.query.state;
@@ -48,10 +50,9 @@ export const add_pid_routes = (app, thread_state: ThreadsAndPids, live_connectio
 }
 
 
-export const watch_pids = (thread_state, live_connections) => {
+export const watch_pids = (thread_state: ThreadsAndPids, live_connections: WebSocket[]) => {
     setInterval(() => {
         let pids = Object.keys(thread_state.pid_thread_mapping);
-        let threads_with_pid = Object.values(thread_state.pid_thread_mapping) as string[];
         // check for alive threads
         for (let thread_id in thread_state.threads) {
             thread_state.threads[thread_id].pids = [];
@@ -68,7 +69,7 @@ export const watch_pids = (thread_state, live_connections) => {
             }
         });
         // check dead PIDs
-        threads_with_pid.forEach((thread_id: string) => {
+        Object.values(thread_state.pid_thread_mapping).forEach((thread_id: string) => {
             if (thread_state.threads[thread_id].pids.length == 0) {
                 // RIP
                 thread_state.threads[thread_id].state = "DEAD";

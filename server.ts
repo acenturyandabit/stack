@@ -12,15 +12,15 @@ const PORT = 6234;
 
 
 const main = () => {
-    const live_connections = [];
     const thread_state: ThreadsAndPids = {
         threads: {},
         pid_thread_mapping: {}
     };
-
+    
     const app = express();
     app.use(cors());
-
+    
+    const live_connections = [];
     add_pid_routes(app, thread_state, live_connections);
     watch_pids(thread_state, live_connections);
 

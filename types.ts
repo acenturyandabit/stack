@@ -4,10 +4,22 @@ export type Thread = {
     state: ThreadStateEnum
     command?: string,
     command_started_at?: number,
-    ttl_timeout?: NodeJS.Timeout
+    ttl_timeout?: NodeJS.Timeout,
+    pids: string[]
 };
+
 
 export type ThreadsAndPids = {
     threads: Record<string, Thread>,
     pid_thread_mapping: Record<string, string>
 }
+
+// V2
+export type Task = {
+    pid: string,
+    cwd: string,
+    command: string,
+    started_at: number,
+    completed_at?: number | null,
+  }
+  

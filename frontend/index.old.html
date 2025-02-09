@@ -1,0 +1,143 @@
+<html>
+<h1>Highest Priority Ready Task: <span id="should_be_doing"></span></h1>
+<h2>All thread states</h2>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+<style>
+    body {
+        transition: background-color 0.5s ease;
+    }
+</style>
+<div></div>
+<script>
+    const main = () => {
+        const thread_order = load_thread_order();
+        const thread_states = {};
+        renderer = make_renderer(thread_states, thread_order);
+        handle_thread_state_updates(thread_states, renderer);
+        renderer.render(); // Render the first time
+    }
+
+    const load_thread_order = () => {
+        let thread_order = [];
+        const thread_order_json = localStorage.getItem("thread_order")
+        try {
+            thread_order = JSON.parse(thread_order_json) || [];
+        } catch (ex) {
+            console.log(`oh no, stored thread order was ${thread_order_json}`)
+        }
+        return thread_order;
+    }
+
+    const tuple_compare = (a, b) => a.reduce((p, e, i) => (p != 0) ? p : (e > b[i] ? 1 : (e < b[i] ? -1 : 0)), 0);
+
+    const make_renderer = (thread_states, thread_order) => {
+        return {
+            render: () => {
+                const div = document.querySelector("div");
+                const span = document.querySelector("span#should_be_doing");
+                div.innerHTML = "";
+                const thread_state_entries = Object.entries(thread_states);
+                thread_state_entries.sort((thread_entry_1, thread_entry_2) => {
+                    const infIfNeg = (i) => i < 0 ? Infinity : i;
+                    const tie_thread_state = (thread_state) => [
+                        thread_state[1].state == "DEAD" ? 1 : 0,
+                        infIfNeg(thread_order.indexOf(thread_state[0])),
+                        thread_state[0]
+                    ];
+                    return tuple_compare(tie_thread_state(thread_entry_1), tie_thread_state(thread_entry_2))
+                })
+                let first_you_entry = undefined;
+                let first_you_entry_state;
+                let prev_entry = undefined;
+                const threads_to_render = thread_state_entries.filter(entry => entry[1].state != "DEAD");
+                threads_to_render.forEach(entry => {
+                    let closure_prev_entry = prev_entry;
+                    if ((entry[1].state == "YOU_DOING" || entry[1].state == "YOU_COULD_BE_DOING") && first_you_entry == undefined) {
+                        first_you_entry = entry[0];
+                        first_you_entry_state = entry[1].state;
+                    }
+                    const up_btn = document.createElement("button");
+                    up_btn.innerText = "^";
+                    up_btn.addEventListener("click", () => {
+                        const old_idx = thread_order.indexOf(entry[0])
+                        if (old_idx != -1) {
+                            thread_order.splice(old_idx, 1);
+                        }
+                        if (closure_prev_entry != undefined) {
+                            new_pos = thread_order.indexOf(closure_prev_entry);
+                        } else {
+                            new_pos = thread_order.length;
+                        }
+                        thread_order.splice(new_pos, 0, entry[0]);
+                        localStorage.setItem("thread_order", JSON.stringify(thread_order));
+                        renderer.render();
+                    })
+
+                    const url = `https://${window.location.host}`
+                    const send_state = (thread_id, state, command = "") => {
+                        fetch(url + `/status?type=post-update&thread_id=${thread_id}&state=${state}&command=${command}`, { method: "POST" })
+                    }
+
+                    const ack_btn = document.createElement("button");
+                    ack_btn.innerText = "OK";
+                    ack_btn.addEventListener("click", () => {
+                        send_state(entry[0], "YOU_DOING", entry[1].command || "")
+                    });
+
+                    const dead_btn = document.createElement("button");
+                    dead_btn.innerText = "💀";
+                    dead_btn.addEventListener("click", () => {
+                        send_state(entry[0], "DEAD", entry[1].command || "")
+                    });
+
+                    const p = document.createElement("p");
+                    p.append(up_btn);
+                    p.append(ack_btn);
+                    p.append(dead_btn);
+                    if (entry[1].state == "DEAD") {
+                        p.style.color = "#777777";
+                    }
+                    const sp = document.createElement("span");
+                    sp.innerText = `${entry[0]} : ${JSON.stringify(entry[1])}`;
+                    p.appendChild(sp);
+                    div.appendChild(p);
+                    prev_entry = entry[0];
+                })
+                if (first_you_entry_state == "YOU_COULD_BE_DOING") {
+                    document.body.style.backgroundColor = "orange";
+                } else if (first_you_entry_state == undefined) {
+                    document.body.style.backgroundColor = "white";
+                } else {
+                    document.body.style.background = "lightgreen";
+                }
+                span.innerText = first_you_entry || "nothing";
+            }
+        }
+    }
+
+    const handle_thread_state_updates = (thread_states, renderer) => {
+        const protocol = window.location.protocol === "https:" ? "wss" : "ws";
+        const websocket = new WebSocket(`${protocol}://${window.location.host}`);
+        websocket.addEventListener("message", (message) => {
+            const statusUpdate = JSON.parse(message.data);
+            thread_states[statusUpdate.thread_id] = statusUpdate;
+            renderer.render();
+        })
+        websocket.addEventListener("open", () => {
+            const span = document.querySelector("span#should_be_doing");
+            span.innerText = "Connected, waiting for tasks..."
+        })
+        websocket.addEventListener("close", () => {
+            const span = document.querySelector("span#should_be_doing");
+            span.innerText = "DISCONNECTED! Reconnecting..."
+            setTimeout(()=>handle_thread_state_updates(thread_states, renderer), 500);
+        })
+    }
+
+    main();
+
+</script>
+
+</html>
